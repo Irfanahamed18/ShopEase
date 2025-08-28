@@ -11,7 +11,6 @@ const App = () => {
   const [cart, setCart] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check localStorage for logged-in user
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) setIsAuthenticated(true);
@@ -32,12 +31,10 @@ const App = () => {
 
   return (
     <Router>
-      {/* Navbar always visible */}
       <Navbar cart={cart} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
 
       <div className="bg-gray-100 min-h-screen pt-20">
         <Routes>
-          {/* Public Routes */}
           {!isAuthenticated ? (
             <>
               <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
@@ -46,7 +43,6 @@ const App = () => {
             </>
           ) : (
             <>
-              {/* Protected Routes */}
               <Route path="/home" element={<Home />} />
               <Route path="/products" element={<Products addToCart={addToCart} />} />
               <Route
