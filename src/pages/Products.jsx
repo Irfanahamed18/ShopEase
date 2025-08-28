@@ -7,6 +7,9 @@ const Products = ({ addToCart }) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [order, setOrder] = useState("asc");
+  const [cartQuantities, setCartQuantities] = useState({});
+  const [currentPage, setCurrentPage] = useState(1); 
+  const productsPerPage = 20;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -38,6 +41,7 @@ const Products = ({ addToCart }) => {
         const res = await fetch(url);
         const data = await res.json();
         setProducts(data.products || []);
+        setCurrentPage(1); 
       } catch (err) {
         console.error("Error fetching products:", err);
         setProducts([]);
@@ -57,12 +61,34 @@ const Products = ({ addToCart }) => {
       valB = valB.toLowerCase();
     }
 
-    if (order === "asc") {
-      return valA > valB ? 1 : -1;
-    } else {
-      return valA < valB ? 1 : -1;
-    }
+    return order === "asc" ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
   });
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = sortedProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+
+  const handleAdd = (product) => {
+    const newQty = (cartQuantities[product.id] || 0) + 1;
+    setCartQuantities((prev) => ({ ...prev, [product.id]: newQty }));
+    addToCart(product, newQty);
+  };
+
+  const handleRemove = (product) => {
+    const newQty = (cartQuantities[product.id] || 0) - 1;
+    if (newQty <= 0) {
+      const updated = { ...cartQuantities };
+      delete updated[product.id];
+      setCartQuantities(updated);
+    } else {
+      setCartQuantities((prev) => ({ ...prev, [product.id]: newQty }));
+    }
+    addToCart(product, newQty);
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-20 px-4 min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50">
@@ -112,14 +138,14 @@ const Products = ({ addToCart }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {sortedProducts.length > 0 ? (
-          sortedProducts.map((p) => (
+        {currentProducts.length > 0 ? (
+          currentProducts.map((p) => (
             <div
               key={p.id}
               className="bg-white shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition duration-300"
             >
               <img
-                src={p.thumbnail}
+                src={p.thumbnail || (p.images && p.images[0])} 
                 alt={p.title}
                 className="w-full h-48 object-cover"
               />
@@ -127,19 +153,40 @@ const Products = ({ addToCart }) => {
                 <h2 className="text-lg font-semibold text-gray-900 truncate">
                   {p.title}
                 </h2>
-                <p className="text-sm text-gray-600 line-clamp-2">
+                <p className="text-sm text-gray-600 ">
                   {p.description}
                 </p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-indigo-600">
                     ${p.price}
                   </span>
-                  <button
-                    onClick={() => addToCart(p)}
-                    className="bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition"
-                  >
-                    Add to Cart
-                  </button>
+
+                  {cartQuantities[p.id] ? (
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => handleRemove(p)}
+                        className="bg-gray-200 px-3 py-1 hover:bg-gray-300"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 font-semibold text-gray-800 text-center">
+                        {cartQuantities[p.id]}
+                      </span>
+                      <button
+                        onClick={() => handleAdd(p)}
+                        className="bg-indigo-600 text-white px-3 py-1 hover:bg-indigo-700"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleAdd(p)}
+                      className="bg-indigo-600 text-white px-4 py-1 rounded-lg hover:bg-indigo-700 transition"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -150,6 +197,48 @@ const Products = ({ addToCart }) => {
           </p>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-10 space-x-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className={`px-3 py-1 rounded ${
+              currentPage === 1
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }`}
+          >
+            Prev
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className={`px-3 py-1 rounded ${
+              currentPage === totalPages
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
