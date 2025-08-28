@@ -8,9 +8,9 @@ const Navbar = ({ cart, isAuthenticated, setIsAuthenticated }) => {
     e.preventDefault();
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
-      localStorage.removeItem("user"); // clear login info
-      setIsAuthenticated(false); // update state
-      navigate("/login"); // redirect to login
+      localStorage.removeItem("user"); 
+      setIsAuthenticated(false); 
+      navigate("/login"); 
     }
   };
 
@@ -30,7 +30,6 @@ const Navbar = ({ cart, isAuthenticated, setIsAuthenticated }) => {
               Products
             </Link>
 
-            {/* Logout styled like other links */}
             <Link
               to="#"
               onClick={handleLogout}

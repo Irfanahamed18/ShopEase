@@ -8,7 +8,6 @@ const Login = ({ setIsAuthenticated }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Dummy login: any email and password works
     localStorage.setItem("user", JSON.stringify({ email }));
     setIsAuthenticated(true);
     navigate("/home");

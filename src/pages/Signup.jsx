@@ -20,7 +20,7 @@ const Signup = ({ setIsAuthenticated }) => {
     const newUser = { name, email, password };
     users.push(newUser);
     localStorage.setItem("users", JSON.stringify(users));
-    localStorage.setItem("user", JSON.stringify(newUser)); // auto login
+    localStorage.setItem("user", JSON.stringify(newUser)); 
     setIsAuthenticated(true);
     navigate("/home");
   };
